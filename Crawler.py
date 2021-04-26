@@ -72,7 +72,8 @@ class Crawler():
         获取某年某月所有的论文主题的占比
         :param year: (str) e.g.: "21"表示2021年
         :param month: (srt) e.g.: "08"表示8月
-        :return:
+        :return: nums:(list[int])
+                 labels:(list[str])
         """
         with open("../arxiv/cs/" + year + month + ".txt") as f:
             lines = f.readlines()
@@ -87,7 +88,8 @@ class Crawler():
         """
         获取某年所有的论文主题的占比
         :param year: (str) e.g.: "21"表示2021年
-        :return:
+        :return: nums:(list[int])
+                 labels:(list[str])
         """
         subjectDict = {}
         sum = 0
@@ -123,14 +125,66 @@ class Crawler():
                 break
         return nums, labels
 
+    def searchPapreByTitle(self, title):
+        """
+        根据题目搜索论文
+        :param title: (str) 论文题目
+        :return: author: (list) 作者
+                 abstract: (str) 摘要
+                 subject: (str) 主题
+        """
+        title = self.replaceSign(title)
+        words = title.split(" ")
+        title = ""
+        if (len(words) > 0):
+            title += words[0]
+        for i in range(1, len(words)):
+            title += "+" + words[i]
+        url = "https://arxiv.org/search/?query=" + title + "&searchtype=title&abstracts=show&order=&size=25"
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, "html.parser")
+        id = soup.find("p", class_="list-title is-inline-block").find("a").text[6:]
+        return self.searchPaperByID(id)
+
+    def searchPaperByID(self, id):
+        """
+        根据arxiv ID搜索论文
+        :param id: (str) arxiv ID
+        :return: author: (list) 作者
+                 abstract: (str) 摘要
+                 subject: (str) 主题
+        """
+        url = "https://arxiv.org/abs/" + id
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, "html.parser")
+        authors = []
+        a = soup.find("div", class_="authors").find_all("a")
+        for e in a:
+            authors.append(e.text)
+        abstract = soup.find("blockquote").text.replace("\n", " ").strip()
+        subject = soup.find("span", class_="primary-subject").text
+        return authors, abstract, subject
+
+    def replaceSign(self, title):
+        """
+        将题目中的特殊字符替换
+        :param title: (str) 论文题目
+        :return: title: (str) 替换后的论文题目
+        """
+        title = title.replace("(", "%28").replace(")", "%29").replace(":", "%3A")
+        return title
+
 
 if __name__ == "__main__":
     majors = ["physics", "math", "cs"]
     if not os.path.isdir("../arxiv"):
         os.mkdir("../arxiv")
     crawler = Crawler("cs")
-    crawler.getYearSubject("20")
-    #nums,labels=crawler.getMonthSubjectProp("20","03")
-    nums, labels = crawler.getYearSubjectProp("20")
-    plt.pie(nums, labels=labels, autopct="%.2f%%")
-    plt.show()
+    # crawler.getYearSubject("20")
+    # nums,labels=crawler.getMonthSubjectProp("20","03")
+    authors, abstract, subject = crawler.searchPapreByTitle(
+        "MetaHTR: Towards Writer-Adaptive Handwritten Text Recognition")
+    print(authors, "\n", abstract, "\n", subject)
+    # nums, labels = crawler.getYearSubjectProp("20")
+    # plt.pie(nums, labels=labels, autopct="%.2f%%")
+    # plt.show()
