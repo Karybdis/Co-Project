@@ -20,16 +20,6 @@ class Crawler():
         self.url = "https://arxiv.org/list/" + major + "/"
         os.makedirs("../arxiv/" + major, exist_ok=True)
 
-    # def download(self):
-    #     for url in self.urls:
-    #         response = requests.get(url)
-    #         name = url.split('/')[-1]
-    #         savePath = "/home/cheng/文档/paper/" + name
-    #         print("downloading:" + name)
-    #         with open(savePath, "wb") as file:
-    #             file.write(response.content)
-    #         time.sleep(5)
-
     def getMonthSubject(self, year, month):
         """
         获得某年某月所有的论文名字和主题
@@ -44,7 +34,7 @@ class Crawler():
         sumPaper = int(soup.small.b.previous_sibling.split()[-2])  # 该年总的论文数
         print("开始获取" + month + "月的内容\n")
         while (currentPaper < sumPaper):
-            time.sleep(5)
+            time.sleep(3)
             if currentPaper != 0:
                 currentUrl = self.url + year + month + "?skip=" + str(currentPaper) + "&show=2000"
                 response = requests.get(currentUrl)
@@ -52,7 +42,7 @@ class Crawler():
             titles = soup.find_all("div", class_="list-title mathjax")  # 获取所有标题所在的div
             subjects = soup.find_all("span", class_="primary-subject")  # 获取所有主题所在的span
             for i in range(len(titles)):
-                savePath = "../arxiv/cs/20" + month + ".txt"
+                savePath = "../arxiv/cs/" + year + month + ".txt"
                 with open(savePath, "a") as f:
                     f.write(titles[i].span.next_sibling.strip() + ";" + subjects[i].text + "\n")
             currentPaper += 2000
@@ -63,7 +53,7 @@ class Crawler():
         :param year: (str) e.g.: "21"表示2021
         :return: None
         """
-        for m in range(1, 3):
+        for m in range(1, 13):
             month = str(m) if m >= 10 else "0" + str(m)
             self.getMonthSubject(year, month)
 
@@ -125,24 +115,77 @@ class Crawler():
                 break
         return nums, labels
 
-    def searchPapreByTitle(self, title):
+    def searchPaperByTitle(self, title, download=False):
         """
         根据题目搜索论文
         :param title: (str) 论文题目
-        :return: author: (list) 作者
+        :return: url: (str) 论文url地址
+                 title: (str) 题目
+                 author: (list) 作者
                  abstract: (str) 摘要
                  subject: (str) 主题
         """
         title = self.replaceSign(title)
         words = title.split(" ")
         title = ""
-        if (len(words) > 0):
+        if len(words) > 0:
             title += words[0]
         for i in range(1, len(words)):
             title += "+" + words[i]
         url = "https://arxiv.org/search/?query=" + title + "&searchtype=title&abstracts=show&order=&size=25"
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
+        if soup.find("span", class_="is-warning") is not None:
+            if download:
+                return ""
+            else:
+                assert soup.find("span", class_="is-warning") is None, "no result for search"
+        id = soup.find("p", class_="list-title is-inline-block").find("a").text[6:]
+        if download:
+            return "https://arxiv.org/pdf/" + id + ".pdf"
+        return self.searchPaperByID(id)
+
+    def searchPaperByAuthor(self, author):
+        """
+        根据作者搜索论文
+        :param author: (str) 作者
+        :return: title: (str) 题目
+                 author: (list) 作者
+                 abstract: (str) 摘要
+                 subject: (str) 主题
+        """
+        words = author.split(" ")
+        author = ""
+        if len(words) > 0:
+            author += words[0]
+        for i in range(1, len(words)):
+            author += "+" + words[i]
+        url = "https://arxiv.org/search/?query=" + author + "&searchtype=author&abstracts=show&order=&size=25"
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, "html.parser")
+        assert soup.find("span", class_="is-warning") is None, "no result for search"
+        id = soup.find("p", class_="list-title is-inline-block").find("a").text[6:]
+        return self.searchPaperByID(id)
+
+    def searchPaperByAbstract(self, abstract):
+        """
+        根据摘要搜索论文
+        :param abstract: (str) 摘要
+        :return: title: (str) 题目
+                 author: (list) 作者
+                 abstract: (str) 摘要
+                 subject: (str) 主题
+        """
+        words = abstract.split(" ")
+        abstract = ""
+        if len(words) > 0:
+            abstract += words[0]
+        for i in range(1, len(words)):
+            abstract += "+" + words[i]
+        url = "https://arxiv.org/search/?query=" + abstract + "&searchtype=abstract&abstracts=show&order=&size=25"
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, "html.parser")
+        assert soup.find("span", class_="is-warning") is None, "no result for search"
         id = soup.find("p", class_="list-title is-inline-block").find("a").text[6:]
         return self.searchPaperByID(id)
 
@@ -150,20 +193,22 @@ class Crawler():
         """
         根据arxiv ID搜索论文
         :param id: (str) arxiv ID
-        :return: author: (list) 作者
+        :return: title: (str) 题目
+                 author: (list) 作者
                  abstract: (str) 摘要
                  subject: (str) 主题
         """
         url = "https://arxiv.org/abs/" + id
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
+        title = soup.find("h1", class_="title mathjax").span.next_sibling
         authors = []
         a = soup.find("div", class_="authors").find_all("a")
         for e in a:
             authors.append(e.text)
         abstract = soup.find("blockquote").text.replace("\n", " ").strip()
         subject = soup.find("span", class_="primary-subject").text
-        return authors, abstract, subject
+        return title, authors, abstract, subject
 
     def replaceSign(self, title):
         """
@@ -174,17 +219,50 @@ class Crawler():
         title = title.replace("(", "%28").replace(")", "%29").replace(":", "%3A")
         return title
 
+    def downloadPaperFromTxt(self, txtPath, savePath):
+        """
+        :param txtPath: (str) txt地址
+        :param savePath: (str) 保存地址
+        :return:Ｎone
+        """
+        with open(txtPath, 'r') as f:
+            lines = f.readlines()
+        urls = []
+        for line in lines:
+            time.sleep(3)
+            url = self.searchPaperByTitle(line.strip(), True)
+            if url != "":
+                urls.append(url)
+        self.download(urls, savePath)
+
+    def download(self, urls, savePathRoot):
+        """
+        :param urls: (list[str]) pdf的url地址
+        :param savePathRoot: (str) 保存地址
+        :return:
+        """
+        os.makedirs(savePathRoot, exist_ok=True)
+        for url in urls:
+            response = requests.get(url)
+            name = url.split('/')[-1]
+            savePath = os.path.join(savePathRoot, name)
+            print("downloading:" + name)
+            with open(savePath, "wb") as file:
+                file.write(response.content)
+            time.sleep(3)
+
 
 if __name__ == "__main__":
     majors = ["physics", "math", "cs"]
-    if not os.path.isdir("../arxiv"):
-        os.mkdir("../arxiv")
+    # if not os.path.isdir("../arxiv"):
+    #     os.mkdir("../arxiv")
     crawler = Crawler("cs")
-    # crawler.getYearSubject("20")
-    # nums,labels=crawler.getMonthSubjectProp("20","03")
-    authors, abstract, subject = crawler.searchPapreByTitle(
-        "MetaHTR: Towards Writer-Adaptive Handwritten Text Recognition")
-    print(authors, "\n", abstract, "\n", subject)
+    # crawler.getYearSubject("19")
+    # nums,labels=crawler.getMonthSubjectProp("20","01")
+    # title, authors, abstract, subject = crawler.searchPaperByAuthor(
+    #     "Chengyue Jiang")
+    # print(title, "\n", authors, "\n", abstract, "\n", subject)
     # nums, labels = crawler.getYearSubjectProp("20")
     # plt.pie(nums, labels=labels, autopct="%.2f%%")
     # plt.show()
+    crawler.downloadPaperFromTxt("/home/cheng/paper.txt", "/home/cheng/dlPaper")
