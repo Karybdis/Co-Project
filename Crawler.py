@@ -120,10 +120,13 @@ class Crawler():
         根据题目搜索论文
         :param title: (str) 论文题目
         :return: url: (str) 论文url地址
+                 info: (list[
+                 id: (str) arxiv ID
                  title: (str) 题目
                  author: (list) 作者
                  abstract: (str) 摘要
                  subject: (str) 主题
+                 ])
         """
         title = self.replaceSign(title)
         words = title.split(" ")
@@ -140,19 +143,26 @@ class Crawler():
                 return ""
             else:
                 assert soup.find("span", class_="is-warning") is None, "no result for search"
-        id = soup.find("p", class_="list-title is-inline-block").find("a").text[6:]
         if download:
+            id = soup.find("p", class_="list-title is-inline-block").find("a").text[6:]
             return "https://arxiv.org/pdf/" + id + ".pdf"
-        return self.searchPaperByID(id)
+        p_list = soup.find_all("p", class_="list-title is-inline-block")
+        id_list = []
+        for i in range(min(10, len(p_list))):
+            id_list.append(p_list[i].find("a").text[6:])
+        return self.searchPaperByID(id_list)
 
     def searchPaperByAuthor(self, author):
         """
         根据作者搜索论文
         :param author: (str) 作者
-        :return: title: (str) 题目
+        :return: info: (list[
+                 id: (str) arxiv ID
+                 title: (str) 题目
                  author: (list) 作者
                  abstract: (str) 摘要
                  subject: (str) 主题
+                 ])
         """
         words = author.split(" ")
         author = ""
@@ -164,17 +174,23 @@ class Crawler():
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
         assert soup.find("span", class_="is-warning") is None, "no result for search"
-        id = soup.find("p", class_="list-title is-inline-block").find("a").text[6:]
-        return self.searchPaperByID(id)
+        p_list = soup.find_all("p", class_="list-title is-inline-block")
+        id_list = []
+        for i in range(min(10, len(p_list))):
+            id_list.append(p_list[i].find("a").text[6:])
+        return self.searchPaperByID(id_list)
 
     def searchPaperByAbstract(self, abstract):
         """
         根据摘要搜索论文
         :param abstract: (str) 摘要
-        :return: title: (str) 题目
+        :return: info: (list[
+                 id: (str) arxiv ID
+                 title: (str) 题目
                  author: (list) 作者
                  abstract: (str) 摘要
                  subject: (str) 主题
+                 ])
         """
         words = abstract.split(" ")
         abstract = ""
@@ -186,29 +202,44 @@ class Crawler():
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
         assert soup.find("span", class_="is-warning") is None, "no result for search"
-        id = soup.find("p", class_="list-title is-inline-block").find("a").text[6:]
-        return self.searchPaperByID(id)
+        p_list = soup.find_all("p", class_="list-title is-inline-block")
+        id_list = []
+        for i in range(min(10, len(p_list))):
+            id_list.append(p_list[i].find("a").text[6:])
+        return self.searchPaperByID(id_list)
 
-    def searchPaperByID(self, id):
+    def searchPaperByID(self, id_list):
         """
         根据arxiv ID搜索论文
-        :param id: (str) arxiv ID
-        :return: title: (str) 题目
+        :param id_list: (list[str]) arxiv ID
+        :return: info: (list[
+                 id: (str) arxiv ID
+                 title: (str) 题目
                  author: (list) 作者
                  abstract: (str) 摘要
                  subject: (str) 主题
+                 ])
         """
-        url = "https://arxiv.org/abs/" + id
-        response = requests.get(url)
-        soup = BeautifulSoup(response.text, "html.parser")
-        title = soup.find("h1", class_="title mathjax").span.next_sibling
-        authors = []
-        a = soup.find("div", class_="authors").find_all("a")
-        for e in a:
-            authors.append(e.text)
-        abstract = soup.find("blockquote").text.replace("\n", " ").strip()
-        subject = soup.find("span", class_="primary-subject").text
-        return title, authors, abstract, subject
+        info = []
+        for i in range(len(id_list)):
+            id = id_list[i]
+            url = "https://arxiv.org/abs/" + id
+            response = requests.get(url)
+            soup = BeautifulSoup(response.text, "html.parser")
+            title = soup.find("h1", class_="title mathjax").span.next_sibling
+            authors = []
+            a = soup.find("div", class_="authors").find_all("a")
+            for e in a:
+                authors.append(e.text)
+            abstract = soup.find("blockquote").text.replace("\n", " ").strip()
+            subject = soup.find("span", class_="primary-subject").text
+            dict = {"id": id, "title": title, "authors": authors, "abstract": abstract, "subject": subject}
+            info.append(dict)
+            time.sleep(0.5)
+        with open("./sss.txt", 'w') as f:
+            for i in range(len(id_list)):
+                f.write(info[i]["id"] + "\n")
+        return info
 
     def replaceSign(self, title):
         """
@@ -235,6 +266,25 @@ class Crawler():
                 urls.append(url)
         self.download(urls, savePath)
 
+    def downloadPaperFromInput(self, input,savePath):
+        """
+        :param input: (str) 下载的索引（１开始），逗号隔开　e.g.:"1,2,3,4"
+        :param savePath: (str) 保存地址
+        :return: None
+        """
+        nums = input.split(',')
+        indices = set()
+        urls=[]
+        with open("./sss.txt", 'r') as f:
+            lines = f.readlines()
+        for num in nums:
+            if num.isdigit() and int(num)<=len(lines):
+                indices.add(int(num))
+        for index in indices:
+            url ="https://arxiv.org/pdf/" + lines[index-1].strip() + ".pdf"
+            urls.append(url)
+        self.download(urls,savePath)
+
     def download(self, urls, savePathRoot):
         """
         :param urls: (list[str]) pdf的url地址
@@ -253,16 +303,17 @@ class Crawler():
 
 
 if __name__ == "__main__":
-    majors = ["physics", "math", "cs"]
+    majors = ["physics", "math", "cs", "q-bio", "q-fin", "stat"]
     # if not os.path.isdir("../arxiv"):
     #     os.mkdir("../arxiv")
     crawler = Crawler("cs")
     # crawler.getYearSubject("19")
     # nums,labels=crawler.getMonthSubjectProp("20","01")
-    # title, authors, abstract, subject = crawler.searchPaperByAuthor(
+    # info = crawler.searchPaperByAuthor(
     #     "Chengyue Jiang")
-    # print(title, "\n", authors, "\n", abstract, "\n", subject)
+    # print(info)
     # nums, labels = crawler.getYearSubjectProp("20")
     # plt.pie(nums, labels=labels, autopct="%.2f%%")
     # plt.show()
-    crawler.downloadPaperFromTxt("/home/cheng/paper.txt", "/home/cheng/dlPaper")
+    # crawler.downloadPaperFromTxt("/home/cheng/paper.txt", "/home/cheng/dlPaper")
+    crawler.downloadPaperFromInput("1,2,3","/home/cheng/dlPaper")
