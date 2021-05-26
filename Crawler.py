@@ -252,6 +252,7 @@ class Crawler():
 
     def downloadPaperFromTxt(self, txtPath, savePath):
         """
+        从本地批量下载论文
         :param txtPath: (str) txt地址
         :param savePath: (str) 保存地址
         :return:Ｎone
@@ -268,6 +269,7 @@ class Crawler():
 
     def downloadPaperFromInput(self, input,savePath):
         """
+        从输入下载论文
         :param input: (str) 下载的索引（１开始），逗号隔开　e.g.:"1,2,3,4"
         :param savePath: (str) 保存地址
         :return: None
@@ -287,6 +289,7 @@ class Crawler():
 
     def download(self, urls, savePathRoot):
         """
+        下载论文
         :param urls: (list[str]) pdf的url地址
         :param savePathRoot: (str) 保存地址
         :return:
