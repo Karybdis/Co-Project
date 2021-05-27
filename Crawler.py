@@ -20,7 +20,7 @@ class Crawler():
         self.url = "https://arxiv.org/list/" + major + "/"
         os.makedirs("../arxiv/" + major, exist_ok=True)
 
-    def getMonthSubject(self, year, month):
+    def getYearMonthSubject(self, year, month):
         """
         获得某年某月所有的论文名字和主题
         :param year: (str) e.g.: "21"表示2021年
@@ -32,7 +32,7 @@ class Crawler():
         soup = BeautifulSoup(response.text, "html.parser")
         currentPaper = 0  # 当前论文数
         sumPaper = int(soup.small.b.previous_sibling.split()[-2])  # 该年总的论文数
-        print("开始获取" + month + "月的内容\n")
+        print("开始获取" + year + "年" + month + "月的内容\n")
         while (currentPaper < sumPaper):
             time.sleep(3)
             if currentPaper != 0:
@@ -47,23 +47,52 @@ class Crawler():
                     f.write(titles[i].span.next_sibling.strip() + ";" + subjects[i].text + "\n")
             currentPaper += 2000
 
-    def getYearSubject(self, year):
+    def getTimeQuantumSubject(self, startYear, startMonth, endYear, endMonth):
         """
-        获取某年所有的论文名字和主题
-        :param year: (str) e.g.: "21"表示2021
+        获取某个时间范围内的论文名字和主题
+        :param startYear: (str | int) 开始年份，2018-2021
+        :param startMonth: (str | int) 开始月份，2018-2021
+        :param endYear: (str | int) 结束年份，01-12
+        :param endMonth: (str | int) 结束月份，01-12
         :return: None
         """
-        for m in range(1, 13):
-            month = str(m) if m >= 10 else "0" + str(m)
-            self.getMonthSubject(year, month)
+        if isinstance(startYear, str):
+            assert startYear.isdigit() and len(startYear) == 4
+            startYear = int(startYear)
+        if isinstance(endYear, str):
+            assert endYear.isdigit() and len(endYear) == 4
+            endYear = int(endYear)
+        assert 2018 <= startYear <= 2021 and 2018 <= endYear <= 2021
+        startYear -= 2000
+        endYear -= 2000
+        if isinstance(startMonth, str):
+            assert startMonth.isdigit() and len(startMonth) == 2
+            startMonth = int(startMonth)
+        if isinstance(endMonth, str):
+            assert endMonth.isdigit() and len(endMonth) == 2
+            endMonth = int(endMonth)
+        assert 1 <= startMonth <= 12 and 1 <= endMonth <= 12
+        assert startYear < endYear or startYear == endYear and startMonth <= endMonth
+        assert endYear < 21 or endYear == 21 and endMonth <= 5, "No Paper after 2021.05"
+        for year in range(startYear, endYear + 1):
+            if year == startYear:
+                curStartMonth = startMonth
+            else:
+                curStartMonth = 1
+            if year == endYear:
+                curEndMonth = endMonth
+            else:
+                curEndMonth = 12
+            for month in range(curStartMonth, curEndMonth + 1):
+                self.getYearMonthSubject(str(year), str(month) if month >= 10 else "0" + str(month))
 
-    def getMonthSubjectProp(self, year, month):
+    def getYearMonthSubjectProp(self, year, month):
         """
         获取某年某月所有的论文主题的占比
         :param year: (str) e.g.: "21"表示2021年
         :param month: (srt) e.g.: "08"表示8月
-        :return: nums:(list[int])
-                 labels:(list[str])
+        :return: nums:(list[int])   某个主题数量，逆序存储
+                 labels:(list[str]) 某个主题标签，索引对应nums
         """
         with open("../arxiv/cs/" + year + month + ".txt") as f:
             lines = f.readlines()
@@ -74,23 +103,43 @@ class Crawler():
             subjectDict[subject] = subjectDict.get(subject, 0) + 1
         return self.getLabelsAndNum(subjectDict, sum)
 
-    def getYearSubjectProp(self, year):
+    def getTimeQuantumSubjectProp(self, startYear, startMonth, endYear, endMonth):
         """
-        获取某年所有的论文主题的占比
-        :param year: (str) e.g.: "21"表示2021年
-        :return: nums:(list[int])
-                 labels:(list[str])
+        获取某个时间段内所有的论文主题的占比
+        :param startYear: (str) 开始年份，2018-2021
+        :param startMonth: (str) 开始月份，2018-2021
+        :param endYear: (str) 结束年份，01-12
+        :param endMonth: (str) 结束月份，01-12
+        :return: nums:(list[int])   某个主题数量，逆序存储
+                 labels:(list[str]) 某个主题标签，索引对应nums
         """
+
+        startYear = int(startYear) - 2000
+        endYear = int(endYear) - 2000
+        startMonth = int(startMonth)
+        endMonth = int(endMonth)
+        assert 1 <= startMonth <= 12 and 1 <= endMonth <= 12
+        assert startYear < endYear or startYear == endYear and startMonth <= endMonth
+        assert endYear < 21 or endYear == 21 and endMonth <= 5, "No Paper after 2021.05"
         subjectDict = {}
         sum = 0
-        for m in range(1, 13):
-            month = str(m) if m >= 10 else "0" + str(m)
-            with open("../arxiv/cs/" + year + month + ".txt") as f:
-                lines = f.readlines()
-            sum += len(lines)
-            for line in lines:
-                subject = line.split(";")[-1].strip()
-                subjectDict[subject] = subjectDict.get(subject, 0) + 1
+        for year in range(startYear, endYear + 1):
+            if year == startYear:
+                curStartMonth = startMonth
+            else:
+                curStartMonth = 1
+            if year == endYear:
+                curEndMonth = endMonth
+            else:
+                curEndMonth = 12
+            for month in range(curStartMonth, curEndMonth + 1):
+                m = str(month) if month >= 10 else "0" + str(month)
+                with open("../arxiv/cs/" + str(year) + m + ".txt") as f:
+                    lines = f.readlines()
+                sum += len(lines)
+                for line in lines:
+                    subject = line.split(";")[-1].strip()
+                    subjectDict[subject] = subjectDict.get(subject, 0) + 1
         return self.getLabelsAndNum(subjectDict, sum)
 
     def getLabelsAndNum(self, subjectDict, sum):
@@ -98,8 +147,8 @@ class Crawler():
         获取画圆饼图所需的主题标签和每个主题对应的占比
         :param subjectDict: (dict[str:int])　存放主题和对应数量
         :param sum: (int) 主题总量
-        :return: nums:(list[int])
-                 labels:(list[str])
+        :return: nums:(list[int])   某个主题数量，逆序存储
+                 labels:(list[str]) 某个主题标签，索引对应nums
         """
         subjectNum = sorted(subjectDict.items(), key=lambda a: -a[1])  # 根据主题数量逆序排序
         labels = []
@@ -119,6 +168,7 @@ class Crawler():
         """
         根据题目搜索论文
         :param title: (str) 论文题目
+                download (boolean) 标识符，当该方法被downloadPaperFromTxt调用时候为true
         :return: url: (str) 论文url地址
                  info: (list[
                  id: (str) arxiv ID
@@ -146,11 +196,11 @@ class Crawler():
         if download:
             id = soup.find("p", class_="list-title is-inline-block").find("a").text[6:]
             return "https://arxiv.org/pdf/" + id + ".pdf"
-        p_list = soup.find_all("p", class_="list-title is-inline-block")
-        id_list = []
-        for i in range(min(10, len(p_list))):
-            id_list.append(p_list[i].find("a").text[6:])
-        return self.searchPaperByID(id_list)
+        pList = soup.find_all("p", class_="list-title is-inline-block")
+        idList = []
+        for i in range(min(10, len(pList))):
+            idList.append(pList[i].find("a").text[6:])
+        return self.searchPaperByID(idList)
 
     def searchPaperByAuthor(self, author):
         """
@@ -174,11 +224,11 @@ class Crawler():
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
         assert soup.find("span", class_="is-warning") is None, "no result for search"
-        p_list = soup.find_all("p", class_="list-title is-inline-block")
-        id_list = []
-        for i in range(min(10, len(p_list))):
-            id_list.append(p_list[i].find("a").text[6:])
-        return self.searchPaperByID(id_list)
+        pList = soup.find_all("p", class_="list-title is-inline-block")
+        idList = []
+        for i in range(min(10, len(pList))):
+            idList.append(pList[i].find("a").text[6:])
+        return self.searchPaperByID(idList)
 
     def searchPaperByAbstract(self, abstract):
         """
@@ -202,16 +252,16 @@ class Crawler():
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
         assert soup.find("span", class_="is-warning") is None, "no result for search"
-        p_list = soup.find_all("p", class_="list-title is-inline-block")
-        id_list = []
-        for i in range(min(10, len(p_list))):
-            id_list.append(p_list[i].find("a").text[6:])
-        return self.searchPaperByID(id_list)
+        pList = soup.find_all("p", class_="list-title is-inline-block")
+        idList = []
+        for i in range(min(10, len(pList))):
+            idList.append(pList[i].find("a").text[6:])
+        return self.searchPaperByID(idList)
 
-    def searchPaperByID(self, id_list):
+    def searchPaperByID(self, id):
         """
         根据arxiv ID搜索论文
-        :param id_list: (list[str]) arxiv ID
+        :param id: (str | list[str]) arxiv ID
         :return: info: (list[
                  id: (str) arxiv ID
                  title: (str) 题目
@@ -220,9 +270,14 @@ class Crawler():
                  subject: (str) 主题
                  ])
         """
+        idList = []
+        if isinstance(id, list):
+            idList = id
+        elif isinstance(id, str):
+            idList.append(id)
         info = []
-        for i in range(len(id_list)):
-            id = id_list[i]
+        for i in range(len(idList)):
+            id = idList[i]
             url = "https://arxiv.org/abs/" + id
             response = requests.get(url)
             soup = BeautifulSoup(response.text, "html.parser")
@@ -237,7 +292,7 @@ class Crawler():
             info.append(dict)
             time.sleep(0.5)
         with open("./sss.txt", 'w') as f:
-            for i in range(len(id_list)):
+            for i in range(len(idList)):
                 f.write(info[i]["id"] + "\n")
         return info
 
@@ -267,25 +322,25 @@ class Crawler():
                 urls.append(url)
         self.download(urls, savePath)
 
-    def downloadPaperFromInput(self, input,savePath):
+    def downloadPaperFromInput(self, input, savePath):
         """
-        从输入下载论文
-        :param input: (str) 下载的索引（１开始），逗号隔开　e.g.:"1,2,3,4"
+        从输入序号下载论文
+        :param input: (str) 下载的索引（１开始），英文逗号隔开　e.g.:"1,2,3,4"
         :param savePath: (str) 保存地址
         :return: None
         """
         nums = input.split(',')
         indices = set()
-        urls=[]
+        urls = []
         with open("./sss.txt", 'r') as f:
             lines = f.readlines()
         for num in nums:
-            if num.isdigit() and int(num)<=len(lines):
+            if num.isdigit() and int(num) <= len(lines):
                 indices.add(int(num))
         for index in indices:
-            url ="https://arxiv.org/pdf/" + lines[index-1].strip() + ".pdf"
+            url = "https://arxiv.org/pdf/" + lines[index - 1].strip() + ".pdf"
             urls.append(url)
-        self.download(urls,savePath)
+        self.download(urls, savePath)
 
     def download(self, urls, savePathRoot):
         """
@@ -310,13 +365,13 @@ if __name__ == "__main__":
     # if not os.path.isdir("../arxiv"):
     #     os.mkdir("../arxiv")
     crawler = Crawler("cs")
-    # crawler.getYearSubject("19")
-    # nums,labels=crawler.getMonthSubjectProp("20","01")
-    # info = crawler.searchPaperByAuthor(
-    #     "Chengyue Jiang")
+    # crawler.getTimeQuantumSubject("2019", "08", "2020", "03")
+    # nums,labels=crawler.getYearMonthSubjectProp("20","01")
+    # info = crawler.searchPaperByID(
+    #     ["2012.15397", "2012.13501"])
     # print(info)
-    # nums, labels = crawler.getYearSubjectProp("20")
-    # plt.pie(nums, labels=labels, autopct="%.2f%%")
-    # plt.show()
+    nums, labels = crawler.getTimeQuantumSubjectProp("2019", "08", "2020", "03")
+    plt.pie(nums, labels=labels, autopct="%.2f%%")
+    plt.show()
     # crawler.downloadPaperFromTxt("/home/cheng/paper.txt", "/home/cheng/dlPaper")
-    crawler.downloadPaperFromInput("1,2,3","/home/cheng/dlPaper")
+    # crawler.downloadPaperFromInput("1,2,3","/home/cheng/dlPaper")
