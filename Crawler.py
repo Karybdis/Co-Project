@@ -142,6 +142,66 @@ class Crawler():
                     subjectDict[subject] = subjectDict.get(subject, 0) + 1
         return self.getLabelsAndNum(subjectDict, sum)
 
+    def getTimeQuantumSubjectTrend(self, startYear, startMonth, endYear, endMonth):
+        """
+        获取某个时间段Top5主题的趋势
+        :param startYear: (str) 开始年份，2018-2021
+        :param startMonth: (str) 开始月份，2018-2021
+        :param endYear: (str) 结束年份，01-12
+        :param endMonth: (str) 结束月份，01-12
+        :return: None
+        """
+        _, labels = self.getTimeQuantumSubjectProp(startYear, startMonth, endYear, endMonth)
+        startYear = int(startYear) - 2000
+        endYear = int(endYear) - 2000
+        startMonth = int(startMonth)
+        endMonth = int(endMonth)
+
+        time = 0
+        for year in range(startYear, endYear + 1):
+            if year == startYear:
+                curStartMonth = startMonth
+            else:
+                curStartMonth = 1
+            if year == endYear:
+                curEndMonth = endMonth
+            else:
+                curEndMonth = 12
+            time += curEndMonth - curStartMonth + 1
+        x = [i for i in range(time)]
+        y = [[0 for _ in range(time)] for _ in range(time)]
+
+        subjectIndex = {}
+        for i in range(5):
+            subjectIndex[labels[i]] = i
+        time = 0
+        xticks = []
+        for year in range(startYear, endYear + 1):
+            if year == startYear:
+                curStartMonth = startMonth
+            else:
+                curStartMonth = 1
+            if year == endYear:
+                curEndMonth = endMonth
+            else:
+                curEndMonth = 12
+            for month in range(curStartMonth, curEndMonth + 1):
+                m = str(month) if month >= 10 else "0" + str(month)
+                xticks.append(str(year) + m)
+                with open("../arxiv/cs/" + str(year) + m + ".txt") as f:
+                    lines = f.readlines()
+                for line in lines:
+                    subject = line.split(";")[-1].strip()
+                    if subject in subjectIndex:
+                        y[subjectIndex[subject]][time] += 1
+                time += 1
+        for i in range(len(y)):
+            plt.plot(x,y[i],label=labels[i])
+        plt.xticks(x,xticks)
+        plt.legend(bbox_to_anchor=(0,1.02),loc=3, borderaxespad=0)
+        plt.show()
+
+
     def getLabelsAndNum(self, subjectDict, sum):
         """
         获取画圆饼图所需的主题标签和每个主题对应的占比
@@ -370,8 +430,9 @@ if __name__ == "__main__":
     # info = crawler.searchPaperByID(
     #     ["2012.15397", "2012.13501"])
     # print(info)
-    nums, labels = crawler.getTimeQuantumSubjectProp("2019", "08", "2020", "03")
-    plt.pie(nums, labels=labels, autopct="%.2f%%")
-    plt.show()
+    # nums, labels = crawler.getTimeQuantumSubjectProp("2019", "08", "2020", "03")
+    # plt.pie(nums, labels=labels, autopct="%.2f%%")
+    # plt.show()
+    crawler.getTimeQuantumSubjectTrend("2019", "08", "2019", "12")
     # crawler.downloadPaperFromTxt("/home/cheng/paper.txt", "/home/cheng/dlPaper")
     # crawler.downloadPaperFromInput("1,2,3","/home/cheng/dlPaper")
