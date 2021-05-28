@@ -94,9 +94,13 @@ class Crawler():
         :param month: (srt) e.g.: "08"表示8月
         :return: nums:(list[int])   某个主题数量，逆序存储
                  labels:(list[str]) 某个主题标签，索引对应nums
+                 | False (boolean) 未找到文件标识
         """
-        with open("../arxiv/"+self.major+"/" + year + month + ".txt") as f:
-            lines = f.readlines()
+        try:
+            with open("../arxiv/"+self.major+"/" + year + month + ".txt") as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            return False
         sum = len(lines)  # 总的主题数
         subjectDict = {}
         for line in lines:
@@ -113,6 +117,7 @@ class Crawler():
         :param endMonth: (str) 结束月份，01-12
         :return: nums:(list[int])   某个主题数量，逆序存储
                  labels:(list[str]) 某个主题标签，索引对应nums
+                | False (boolean) 未找到文件标识
         """
 
         startYear = int(startYear) - 2000
@@ -135,8 +140,11 @@ class Crawler():
                 curEndMonth = 12
             for month in range(curStartMonth, curEndMonth + 1):
                 m = str(month) if month >= 10 else "0" + str(month)
-                with open("../arxiv/"+self.major+"/" + str(year) + m + ".txt") as f:
-                    lines = f.readlines()
+                try:
+                    with open("../arxiv/"+self.major+"/" + str(year) + m + ".txt") as f:
+                        lines = f.readlines()
+                except FileNotFoundError:
+                    return False
                 sum += len(lines)
                 for line in lines:
                     subject = line.split(";")[-1].strip()
@@ -189,8 +197,11 @@ class Crawler():
             for month in range(curStartMonth, curEndMonth + 1):
                 m = str(month) if month >= 10 else "0" + str(month)
                 xticks.append(str(year) + m)
-                with open("../arxiv/"+self.major+"/" + str(year) + m + ".txt") as f:
-                    lines = f.readlines()
+                try:
+                    with open("../arxiv/"+self.major+"/" + str(year) + m + ".txt") as f:
+                        lines = f.readlines()
+                except FileNotFoundError:
+                    return False
                 for line in lines:
                     subject = line.split(";")[-1].strip()
                     if subject in subjectIndex:
@@ -231,7 +242,7 @@ class Crawler():
         :param title: (str) 论文题目
                 download (boolean) 标识符，当该方法被downloadPaperFromTxt调用时候为true
         :return: url: (str) 论文url地址
-                 info: (list[
+                 |info: (list[
                  id: (str) arxiv ID
                  title: (str) 题目
                  author: (list) 作者
@@ -388,13 +399,17 @@ class Crawler():
         从输入序号下载论文
         :param input: (str) 下载的索引（１开始），英文逗号隔开　e.g.:"1,2,3,4"
         :param savePath: (str) 保存地址
-        :return: None
+        :return: None　| False (boolean) 未找到文件标识
+                　
         """
         nums = input.split(',')
         indices = set()
         urls = []
-        with open("./sss.txt", 'r') as f:
-            lines = f.readlines()
+        try:
+            with open("./sss.txt", 'r') as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            return False
         for num in nums:
             if num.isdigit() and int(num) <= len(lines):
                 indices.add(int(num))
