@@ -18,6 +18,7 @@ class Crawler():
         # elif isinstance(url, list):
         #     self.urls.extend(url)
         self.url = "https://arxiv.org/list/" + major + "/"
+        self.major=major
         os.makedirs("../arxiv/" + major, exist_ok=True)
 
     def getYearMonthSubject(self, year, month):
@@ -42,7 +43,7 @@ class Crawler():
             titles = soup.find_all("div", class_="list-title mathjax")  # 获取所有标题所在的div
             subjects = soup.find_all("span", class_="primary-subject")  # 获取所有主题所在的span
             for i in range(len(titles)):
-                savePath = "../arxiv/cs/" + year + month + ".txt"
+                savePath = "../arxiv/"+self.major+"/" + year + month + ".txt"
                 with open(savePath, "a") as f:
                     f.write(titles[i].span.next_sibling.strip() + ";" + subjects[i].text + "\n")
             currentPaper += 2000
@@ -94,7 +95,7 @@ class Crawler():
         :return: nums:(list[int])   某个主题数量，逆序存储
                  labels:(list[str]) 某个主题标签，索引对应nums
         """
-        with open("../arxiv/cs/" + year + month + ".txt") as f:
+        with open("../arxiv/"+self.major+"/" + year + month + ".txt") as f:
             lines = f.readlines()
         sum = len(lines)  # 总的主题数
         subjectDict = {}
@@ -134,7 +135,7 @@ class Crawler():
                 curEndMonth = 12
             for month in range(curStartMonth, curEndMonth + 1):
                 m = str(month) if month >= 10 else "0" + str(month)
-                with open("../arxiv/cs/" + str(year) + m + ".txt") as f:
+                with open("../arxiv/"+self.major+"/" + str(year) + m + ".txt") as f:
                     lines = f.readlines()
                 sum += len(lines)
                 for line in lines:
@@ -188,7 +189,7 @@ class Crawler():
             for month in range(curStartMonth, curEndMonth + 1):
                 m = str(month) if month >= 10 else "0" + str(month)
                 xticks.append(str(year) + m)
-                with open("../arxiv/cs/" + str(year) + m + ".txt") as f:
+                with open("../arxiv/"+self.major+"/" + str(year) + m + ".txt") as f:
                     lines = f.readlines()
                 for line in lines:
                     subject = line.split(";")[-1].strip()
