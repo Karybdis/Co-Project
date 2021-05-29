@@ -44,7 +44,7 @@ class Crawler():
             subjects = soup.find_all("span", class_="primary-subject")  # 获取所有主题所在的span
             for i in range(len(titles)):
                 savePath = "../arxiv/"+self.major+"/" + year + month + ".txt"
-                with open(savePath, "a") as f:
+                with open(savePath, "a",encoding="utf-8") as f:
                     f.write(titles[i].span.next_sibling.strip() + ";" + subjects[i].text + "\n")
             currentPaper += 2000
 
@@ -361,7 +361,7 @@ class Crawler():
             dict = {"id": id, "title": title, "authors": authors, "abstract": abstract, "subject": subject}
             info.append(dict)
             time.sleep(0.5)
-        with open("./sss.txt", 'w') as f:
+        with open("./sss.txt", 'w',encoding="utf-8") as f:
             for i in range(len(idList)):
                 f.write(info[i]["id"] + "\n")
         return info
