@@ -176,7 +176,7 @@ class Crawler():
                 curEndMonth = 12
             time += curEndMonth - curStartMonth + 1
         x = [i for i in range(time)]
-        y = [[0 for _ in range(time)] for _ in range(time)]
+        y = [[0 for _ in range(time)] for _ in range(5)]
 
         subjectIndex = {}
         for i in range(5):
@@ -447,6 +447,6 @@ if __name__ == "__main__":
     # nums, labels = crawler.getTimeQuantumSubjectProp("2019", "08", "2020", "03")
     # plt.pie(nums, labels=labels, autopct="%.2f%%")
     # plt.show()
-    crawler.getTimeQuantumSubjectTrend("2019", "08", "2019", "12")
+    crawler.getTimeQuantumSubjectTrend("2019", "08", "2019", "11")
     # crawler.downloadPaperFromTxt("/home/cheng/paper.txt", "/home/cheng/dlPaper")
     # crawler.downloadPaperFromInput("1,2,3","/home/cheng/dlPaper")
