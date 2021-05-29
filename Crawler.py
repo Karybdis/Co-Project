@@ -94,13 +94,12 @@ class Crawler():
         :param month: (srt) e.g.: "08"表示8月
         :return: nums:(list[int])   某个主题数量，逆序存储
                  labels:(list[str]) 某个主题标签，索引对应nums
-                 | False (boolean) 未找到文件标识
         """
         try:
             with open("../arxiv/"+self.major+"/" + year + month + ".txt") as f:
                 lines = f.readlines()
         except FileNotFoundError:
-            return False
+            return None,None
         sum = len(lines)  # 总的主题数
         subjectDict = {}
         for line in lines:
@@ -117,7 +116,6 @@ class Crawler():
         :param endMonth: (str) 结束月份，01-12
         :return: nums:(list[int])   某个主题数量，逆序存储
                  labels:(list[str]) 某个主题标签，索引对应nums
-                | False (boolean) 未找到文件标识
         """
 
         startYear = int(startYear) - 2000
@@ -144,7 +142,7 @@ class Crawler():
                     with open("../arxiv/"+self.major+"/" + str(year) + m + ".txt") as f:
                         lines = f.readlines()
                 except FileNotFoundError:
-                    return False
+                    return None,None
                 sum += len(lines)
                 for line in lines:
                     subject = line.split(";")[-1].strip()
@@ -158,7 +156,7 @@ class Crawler():
         :param startMonth: (str) 开始月份，2018-2021
         :param endYear: (str) 结束年份，01-12
         :param endMonth: (str) 结束月份，01-12
-        :return: None
+        :return: None  | False (boolean) 未找到文件标识
         """
         _, labels = self.getTimeQuantumSubjectProp(startYear, startMonth, endYear, endMonth)
         startYear = int(startYear) - 2000
