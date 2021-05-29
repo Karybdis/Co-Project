@@ -9,6 +9,8 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton,
                              QComboBox, QMessageBox, QInputDialog, QFileDialog)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QCoreApplication
+import Crawler
+import matplotlib.pyplot as plt
 
 
 class Example(QWidget):
@@ -16,10 +18,16 @@ class Example(QWidget):
     def __init__(self):
         super().__init__()
 
+        self.cwd = os.getcwd()  # 获取当前程序文件位置
+        self.select = "论文标题"
+        self.subject = ""
+        self.year1 = "2018"
+        self.year2 = "2018"
+        self.month1 = "01"
+        self.month2 = "01"
         self.initUI()  # 界面绘制交给InitUi方法
 
     def initUI(self):
-        self.cwd = os.getcwd()  # 获取当前程序文件位置
         # 设置窗口的位置和大小，从屏幕上（300，300）位置开始，显示一个300*220的界面（宽300，高220）
         self.setGeometry(300, 300, 800, 500)
         self.center()
@@ -27,26 +35,34 @@ class Example(QWidget):
         self.setWindowTitle('论文下载神器')
         # 设置窗口的图标，引用当前目录下的web.png图片
         self.setWindowIcon(QIcon('web.png'))
+        self.crawler = Crawler.Crawler("math")
 
         # 设置按键
         statisticsBtn = QPushButton('一键统计', self)
         # sizeHint()显示默认尺寸
         statisticsBtn.resize(90, 30)
         # 移动窗口的位置
-        statisticsBtn.move(110, 175)
+        statisticsBtn.move(90, 210)
+        themeBtn = QPushButton('主题统计', self)
+        themeBtn.resize(90, 30)
+        themeBtn.move(150, 170)
 
-        monthvisualizationBtn = QPushButton('该月可视化', self)
-        monthvisualizationBtn.resize(90, 30)
-        monthvisualizationBtn.move(10, 210)
-        yearvisualizationBtn = QPushButton('该年可视化', self)
-        yearvisualizationBtn.resize(90, 30)
-        yearvisualizationBtn.move(110, 210)
+        # monthvisualizationBtn = QPushButton('该月可视化', self)
+        # monthvisualizationBtn.resize(90, 30)
+        # monthvisualizationBtn.move(10, 210)
+        # yearvisualizationBtn = QPushButton('该年可视化', self)
+        # yearvisualizationBtn.resize(90, 30)
+        # yearvisualizationBtn.move(110, 210)
+
         trendBtn = QPushButton('趋势可视化', self)
         trendBtn.resize(90, 30)
-        trendBtn.move(210, 210)
+        trendBtn.move(200, 210)
         downloadBtn = QPushButton('下载', self)
         downloadBtn.resize(60, 30)
         downloadBtn.move(300, 430)
+        downloadBtn2 = QPushButton('下载', self)
+        downloadBtn2.resize(60, 30)
+        downloadBtn2.move(260, 340)
         searchBtn = QPushButton('查询', self)
         searchBtn.resize(60, 30)
         searchBtn.move(260, 300)
@@ -55,11 +71,12 @@ class Example(QWidget):
         openBtn.move(230, 430)
 
         # 将点击事件与不同的按键结合
-        # statisticsBtn.clicked.connect(self.statisticsBtnClicked)
-        # monthvisualizationBtn.clicked.connect(self.monthvisualizationBtnClicked)
-        # yearvisualizationBtn.clicked.connect(self.yearvisualizationBtnClicked)
-        # trendBtn.clicked.connect(self.trendBtnClicked)
+        statisticsBtn.clicked.connect(self.statisticsBtnClicked)
+        trendBtn.clicked.connect(self.trendBtnClicked)
+        themeBtn.clicked.connect(self.themeBtnClicked)
         downloadBtn.clicked.connect(self.downloadBtnClicked)
+        downloadBtn2.clicked.connect(self.downloadBtnClicked2)
+        searchBtn.clicked.connect(self.searchBtnClicked)
         openBtn.clicked.connect(self.showDialog)
 
         # 设置各个部位
@@ -90,6 +107,10 @@ class Example(QWidget):
         title13 = QLabel("输入序号", self)
         title13.move(20, 340)
 
+        self.numedit = QTextEdit(self)
+        self.numedit.resize(150, 30)
+        self.numedit.move(100, 340)
+
         self.edit = QTextEdit(self)
         self.edit.resize(370, 430)
         self.edit.move(410, 50)
@@ -102,18 +123,18 @@ class Example(QWidget):
         self.pathedit.resize(150, 30)
         self.pathedit.move(70, 430)
 
-        yearedit = QLineEdit(self)
-        monthedit = QLineEdit(self)
-        yearedit.resize(40, 20)
-        monthedit.resize(40, 20)
-        yearedit.move(120, 100)
-        monthedit.move(200, 100)
-        yearedit2 = QLineEdit(self)
-        monthedit2 = QLineEdit(self)
-        yearedit2.resize(40, 20)
-        monthedit2.resize(40, 20)
-        yearedit2.move(120, 130)
-        monthedit2.move(200, 130)
+        # self.yearedit = QLineEdit(self)
+        # self.monthedit = QLineEdit(self)
+        # self.yearedit.resize(40, 20)
+        # self.monthedit.resize(40, 20)
+        # self.yearedit.move(120, 100)
+        # self.monthedit.move(200, 100)
+        # self.yearedit2 = QLineEdit(self)
+        # self.monthedit2 = QLineEdit(self)
+        # self.yearedit2.resize(40, 20)
+        # self.monthedit2.resize(40, 20)
+        # self.yearedit2.move(120, 130)
+        # self.monthedit2.move(200, 130)
 
         grid = QGridLayout()
         grid.setSpacing(10)
@@ -127,13 +148,39 @@ class Example(QWidget):
         subjectcombo.addItem("Statistics")
         subjectcombo.resize(subjectcombo.sizeHint())
         subjectcombo.move(120, 60)
+        subjectcombo.activated[str].connect(self.subjectActivated)
 
         selectcombo = QComboBox(self)
         selectcombo.addItem("论文标题")
         selectcombo.addItem("关键词")
         selectcombo.addItem("arxivID")
+        selectcombo.addItem("作者")
         selectcombo.resize(80, 30)
         selectcombo.move(10, 300)
+        selectcombo.activated[str].connect(self.selectActivated)
+
+        yearcombo1 = QComboBox(self)
+        yearcombo2 = QComboBox(self)
+        for i in range(3):
+            yearcombo1.addItem(str(2018 + i))
+            yearcombo2.addItem(str(2018 + i))
+        yearcombo1.resize(45, 20)
+        yearcombo2.resize(45, 20)
+        yearcombo1.move(120, 100)
+        yearcombo2.move(120, 130)
+        yearcombo1.activated[str].connect(self.yearcombo1Activated)
+        yearcombo2.activated[str].connect(self.yearcombo2Activated)
+        monthcombo1 = QComboBox(self)
+        monthcombo2 = QComboBox(self)
+        for i in range(12):
+            monthcombo1.addItem(str(i + 1))
+            monthcombo2.addItem(str(i + 1))
+        monthcombo1.resize(45, 20)
+        monthcombo2.resize(45, 20)
+        monthcombo1.move(200, 100)
+        monthcombo2.move(200, 130)
+        monthcombo1.activated[str].connect(self.monthcombo1Activated)
+        monthcombo2.activated[str].connect(self.monthcombo2Activated)
 
         self.setLayout(grid)
 
@@ -150,30 +197,78 @@ class Example(QWidget):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
-    # def statisticsBtnClicked(self):
+    def subjectActivated(self, text):
+        self.subject = text
+        if self.subject == "Mathemastics":
+            self.crawler = Crawler.Crawler("math")
+        elif self.subject == "Physics":
+            self.crawler = Crawler.Crawler("physics")
+        elif self.subject == "Computer Science":
+            self.crawler = Crawler.Crawler("cs")
+        elif self.subject == "Quantitative Biology":
+            self.crawler = Crawler.Crawler("q-bio")
+        elif self.subject == "Quantitative Finance":
+            self.crawler = Crawler.Crawler("q-fin")
+        elif self.subject == "Statistics":
+            self.crawler = Crawler.Crawler("stat")
 
+    def selectActivated(self, text):
+        self.select = text
 
-    # def monthvisualizationBtnClicked(self):
-    #     sender = self.sender()
-    #     self.statusBar().showMessage(sender.text() + ' was pressed')
-    #
-    # def yearvisualizationBtnClicked(self):
-    #     sender = self.sender()
-    #     self.statusBar().showMessage(sender.text() + ' was pressed')
-    #
-    # def trendBtnClicked(self):
-    #     sender = self.sender()
-    #     self.statusBar().showMessage(sender.text() + ' was pressed')
-    #
+    def yearcombo1Activated(self, text):
+        self.year1 = text
+
+    def yearcombo2Activated(self, text):
+        self.year2 = text
+
+    def monthcombo1Activated(self, text):
+        self.month1 = text
+
+    def monthcombo2Activated(self, text):
+        self.month2 = text
+
+    def statisticsBtnClicked(self):
+        nums, labels = self.crawler.getTimeQuantumSubjectProp(self.year1, self.month1, self.year2, self.month2)
+        plt.pie(nums, labels=labels, autopct="%.2f%%")
+        plt.show()
+
+    def themeBtnClicked(self):
+        self.crawler.getTimeQuantumSubject(self.year1, self.month1, self.year2, self.month2)
+        reply = QMessageBox.question(self, '信息', '主题统计完毕',
+                                     QMessageBox.Yes, QMessageBox.Yes)
+
+    def trendBtnClicked(self):
+        self.crawler.getTimeQuantumSubjectTrend(self.year1, self.month1, self.year2, self.month2)
+
+    def searchBtnClicked(self):
+        text = self.searchedit.text()
+        if self.select == "论文标题":
+            retu = self.crawler.searchPaperByTitle(str(text))
+        elif self.select == "关键词":
+            retu = self.crawler.searchPaperByAbstract(str(text))
+        elif self.select == "作者":
+            retu = self.crawler.searchPaperByAuthor(str(text))
+        else:
+            retu = self.crawler.searchPaperByID(str(text))
+        self.edit.setText(str(retu))
+        # for i in range(retu):
+        #     print(retu[i])
+
     def downloadBtnClicked(self):
         text = self.pathedit.text()
-        self.searchedit.setText(str(text))
+        directory = QFileDialog.getExistingDirectory(None, "选取文件夹", "C:/")
+        self.crawler.downloadPaperFromTxt(text, directory)
         # if path:
         #     reply = QMessageBox.question(self, '信息', path)
         # else:
         #     reply = QMessageBox.question(self, '信息', "请重新输入")
         # reply = QMessageBox.question(self, '信息', '确认退出吗？',
         #                              QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+    def downloadBtnClicked2(self):
+        text = self.numedit.text()
+        directory = QFileDialog.getExistingDirectory(None, "选取文件夹", "C:/")
+        # self.crawler.downloadPaperFromInput(text, directory)
 
     def showDialog(self):
         fileName_choose, filetype = QFileDialog.getOpenFileName(self,
@@ -182,7 +277,6 @@ class Example(QWidget):
                                                                 "All Files (*);;Text Files (*.txt)")
 
         self.pathedit.setText(fileName_choose)
-
 
 
 if __name__ == '__main__':
