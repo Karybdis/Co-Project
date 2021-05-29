@@ -107,7 +107,7 @@ class Example(QWidget):
         title13 = QLabel("输入序号", self)
         title13.move(20, 340)
 
-        self.numedit = QTextEdit(self)
+        self.numedit = QLineEdit(self)
         self.numedit.resize(150, 30)
         self.numedit.move(100, 340)
 
@@ -268,7 +268,9 @@ class Example(QWidget):
     def downloadBtnClicked2(self):
         text = self.numedit.text()
         directory = QFileDialog.getExistingDirectory(None, "选取文件夹", "C:/")
-        # self.crawler.downloadPaperFromInput(text, directory)
+        self.crawler.downloadPaperFromInput(text, directory)
+        reply = QMessageBox.question(self, '信息', '论文下载完毕',
+                                     QMessageBox.Yes, QMessageBox.Yes)
 
     def showDialog(self):
         fileName_choose, filetype = QFileDialog.getOpenFileName(self,
