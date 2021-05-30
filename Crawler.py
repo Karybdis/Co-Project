@@ -159,6 +159,8 @@ class Crawler():
         :return: None  | False (boolean) 未找到文件标识
         """
         _, labels = self.getTimeQuantumSubjectProp(startYear, startMonth, endYear, endMonth)
+        if labels is None:
+            return False
         startYear = int(startYear) - 2000
         endYear = int(endYear) - 2000
         startMonth = int(startMonth)
