@@ -67,10 +67,10 @@ class Crawler():
         startYear -= 2000
         endYear -= 2000
         if isinstance(startMonth, str):
-            assert startMonth.isdigit() and len(startMonth) == 2
+            assert startMonth.isdigit() and (len(startMonth) == 1 or 2)
             startMonth = int(startMonth)
         if isinstance(endMonth, str):
-            assert endMonth.isdigit() and len(endMonth) == 2
+            assert endMonth.isdigit() and (len(endMonth) == 1 or 2)
             endMonth = int(endMonth)
         assert 1 <= startMonth <= 12 and 1 <= endMonth <= 12
         assert startYear < endYear or startYear == endYear and startMonth <= endMonth
@@ -438,8 +438,8 @@ if __name__ == "__main__":
     majors = ["physics", "math", "cs", "q-bio", "q-fin", "stat"]
     # if not os.path.isdir("../arxiv"):
     #     os.mkdir("../arxiv")
-    crawler = Crawler("cs")
-    # crawler.getTimeQuantumSubject("2019", "08", "2020", "03")
+    crawler = Crawler("math")
+    crawler.getTimeQuantumSubject("2019", "08", "2020", "09")
     # nums,labels=crawler.getYearMonthSubjectProp("20","01")
     # info = crawler.searchPaperByID(
     #     ["2012.15397", "2012.13501"])
