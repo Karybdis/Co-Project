@@ -229,16 +229,21 @@ class Example(QWidget):
 
     def statisticsBtnClicked(self):
         nums, labels = self.crawler.getTimeQuantumSubjectProp(self.year1, self.month1, self.year2, self.month2)
+        if nums is None:
+            QMessageBox.question(self, '信息', '请先统计主题', QMessageBox.Yes, QMessageBox.Yes)
+            return 0
         plt.pie(nums, labels=labels, autopct="%.2f%%")
         plt.show()
 
     def themeBtnClicked(self):
         self.crawler.getTimeQuantumSubject(self.year1, self.month1, self.year2, self.month2)
-        reply = QMessageBox.question(self, '信息', '主题统计完毕',
-                                     QMessageBox.Yes, QMessageBox.Yes)
+        QMessageBox.question(self, '信息', '主题统计完毕', QMessageBox.Yes, QMessageBox.Yes)
 
     def trendBtnClicked(self):
-        self.crawler.getTimeQuantumSubjectTrend(self.year1, self.month1, self.year2, self.month2)
+        flag = self.crawler.getTimeQuantumSubjectTrend(self.year1, self.month1, self.year2, self.month2)
+        if flag is False:
+            QMessageBox.question(self, '信息', '请先统计主题', QMessageBox.Yes, QMessageBox.Yes)
+            return 0
 
     def searchBtnClicked(self):
         text = self.searchedit.text()
@@ -257,6 +262,8 @@ class Example(QWidget):
     def downloadBtnClicked(self):
         text = self.pathedit.text()
         directory = QFileDialog.getExistingDirectory(None, "选取文件夹", "C:/")
+        if directory == 'C:/' or directory == '':
+            return 0
         self.crawler.downloadPaperFromTxt(text, directory)
         # if path:
         #     reply = QMessageBox.question(self, '信息', path)
@@ -268,9 +275,11 @@ class Example(QWidget):
     def downloadBtnClicked2(self):
         text = self.numedit.text()
         directory = QFileDialog.getExistingDirectory(None, "选取文件夹", "C:/")
+        print('directory:', directory)
+        if directory == 'C:/' or directory == '':
+            return 0
         self.crawler.downloadPaperFromInput(text, directory)
-        reply = QMessageBox.question(self, '信息', '论文下载完毕',
-                                     QMessageBox.Yes, QMessageBox.Yes)
+        QMessageBox.question(self, '信息', '论文下载完毕', QMessageBox.Yes, QMessageBox.Yes)
 
     def showDialog(self):
         fileName_choose, filetype = QFileDialog.getOpenFileName(self,
