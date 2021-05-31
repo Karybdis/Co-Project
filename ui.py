@@ -230,23 +230,30 @@ class Example(QWidget):
     def statisticsBtnClicked(self):
         nums, labels = self.crawler.getTimeQuantumSubjectProp(self.year1, self.month1, self.year2, self.month2)
         if nums is None:
-            QMessageBox.question(self, '信息', '请先统计主题', QMessageBox.Yes, QMessageBox.Yes)
+            QMessageBox.warning(self, '警告', '请先统计主题', QMessageBox.Yes, QMessageBox.Yes)
             return 0
         plt.pie(nums, labels=labels, autopct="%.2f%%")
         plt.show()
 
     def themeBtnClicked(self):
-        self.crawler.getTimeQuantumSubject(self.year1, self.month1, self.year2, self.month2)
+        self.message()
         QMessageBox.question(self, '信息', '主题统计完毕', QMessageBox.Yes, QMessageBox.Yes)
+
+    def message(self):
+        QMessageBox.question(self, '信息', '正在统计主题，请稍等')
+        self.crawler.getTimeQuantumSubject(self.year1, self.month1, self.year2, self.month2)
+        return 0
 
     def trendBtnClicked(self):
         flag = self.crawler.getTimeQuantumSubjectTrend(self.year1, self.month1, self.year2, self.month2)
         if flag is False:
-            QMessageBox.question(self, '信息', '请先统计主题', QMessageBox.Yes, QMessageBox.Yes)
+            QMessageBox.warning(self, '警告', '请先统计主题', QMessageBox.Yes, QMessageBox.Yes)
             return 0
 
     def searchBtnClicked(self):
         text = self.searchedit.text()
+        if text == '':
+            return 0
         if self.select == "论文标题":
             retu = self.crawler.searchPaperByTitle(str(text))
         elif self.select == "关键词":
