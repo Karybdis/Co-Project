@@ -11,6 +11,8 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QCoreApplication
 import Crawler
 import matplotlib.pyplot as plt
+from PyQt5.Qt import *
+from PyQt5.QtWidgets import *
 
 
 class Example(QWidget):
@@ -95,13 +97,13 @@ class Example(QWidget):
         title7 = QLabel('时间', self)
         title7.move(60, 95)
         title8 = QLabel("年", self)
-        title8.move(170, 94)
+        title8.move(180, 94)
         title9 = QLabel("月", self)
-        title9.move(250, 94)
+        title9.move(260, 94)
         title10 = QLabel("年", self)
-        title10.move(170, 124)
+        title10.move(180, 124)
         title11 = QLabel("月", self)
-        title11.move(250, 124)
+        title11.move(260, 124)
         title12 = QLabel("至", self)
         title12.move(100, 124)
         title13 = QLabel("输入序号", self)
@@ -111,7 +113,7 @@ class Example(QWidget):
         self.numedit.resize(150, 30)
         self.numedit.move(100, 340)
 
-        self.edit = QTextEdit(self)
+        self.edit = QPlainTextEdit(self)
         self.edit.resize(370, 430)
         self.edit.move(410, 50)
 
@@ -164,8 +166,8 @@ class Example(QWidget):
         for i in range(3):
             yearcombo1.addItem(str(2018 + i))
             yearcombo2.addItem(str(2018 + i))
-        yearcombo1.resize(45, 20)
-        yearcombo2.resize(45, 20)
+        yearcombo1.resize(55, 20)
+        yearcombo2.resize(55, 20)
         yearcombo1.move(120, 100)
         yearcombo2.move(120, 130)
         yearcombo1.activated[str].connect(self.yearcombo1Activated)
@@ -175,8 +177,8 @@ class Example(QWidget):
         for i in range(12):
             monthcombo1.addItem(str(i + 1))
             monthcombo2.addItem(str(i + 1))
-        monthcombo1.resize(45, 20)
-        monthcombo2.resize(45, 20)
+        monthcombo1.resize(55, 20)
+        monthcombo2.resize(55, 20)
         monthcombo1.move(200, 100)
         monthcombo2.move(200, 130)
         monthcombo1.activated[str].connect(self.monthcombo1Activated)
@@ -236,11 +238,15 @@ class Example(QWidget):
         plt.show()
 
     def themeBtnClicked(self):
+        print(1)
+        self.setWindowTitle('正在统计主题，请稍等...')
+        print(2)
         self.message()
+        self.setWindowTitle('论文下载神器')
         QMessageBox.question(self, '信息', '主题统计完毕', QMessageBox.Yes, QMessageBox.Yes)
 
     def message(self):
-        QMessageBox.question(self, '信息', '正在统计主题，请稍等')
+        # QMessageBox.question(self, '信息', '正在统计主题，请稍等')
         self.crawler.getTimeQuantumSubject(self.year1, self.month1, self.year2, self.month2)
         return 0
 
@@ -262,9 +268,14 @@ class Example(QWidget):
             retu = self.crawler.searchPaperByAuthor(str(text))
         else:
             retu = self.crawler.searchPaperByID(str(text))
-        self.edit.setText(str(retu))
-        # for i in range(retu):
-        #     print(retu[i])
+        # self.edit.setText(str(retu))
+        print(retu)
+        for i in range(len(retu)):
+            self.edit.appendPlainText(str(i + 1))
+            self.edit.appendPlainText('\n')
+            for j in retu[i]:
+                self.edit.appendPlainText(str(j) + ':' + str(retu[i][j]))
+                self.edit.appendPlainText('\n')
 
     def downloadBtnClicked(self):
         text = self.pathedit.text()
