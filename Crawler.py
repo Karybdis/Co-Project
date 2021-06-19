@@ -73,7 +73,8 @@ class Crawler():
             assert endMonth.isdigit() and (len(endMonth) == 1 or 2)
             endMonth = int(endMonth)
         assert 1 <= startMonth <= 12 and 1 <= endMonth <= 12
-        assert startYear < endYear or startYear == endYear and startMonth <= endMonth
+        if not (startYear < endYear or startYear == endYear and startMonth <= endMonth):
+            return False
         assert endYear < 21 or endYear == 21 and endMonth <= 5, "No Paper after 2021.05"
         for year in range(startYear, endYear + 1):
             if year == startYear:
