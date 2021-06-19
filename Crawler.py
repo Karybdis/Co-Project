@@ -264,7 +264,7 @@ class Crawler():
             if download:
                 return ""
             else:
-                assert soup.find("span", class_="is-warning") is None, "no result for search"
+                return False
         if download:
             id = soup.find("p", class_="list-title is-inline-block").find("a").text[6:]
             return "https://arxiv.org/pdf/" + id + ".pdf"
@@ -295,7 +295,8 @@ class Crawler():
         url = "https://arxiv.org/search/?query=" + author + "&searchtype=author&abstracts=show&order=&size=25"
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
-        assert soup.find("span", class_="is-warning") is None, "no result for search"
+        if soup.find("span", class_="is-warning") is not None:
+            return False
         pList = soup.find_all("p", class_="list-title is-inline-block")
         idList = []
         for i in range(min(10, len(pList))):
@@ -323,7 +324,8 @@ class Crawler():
         url = "https://arxiv.org/search/?query=" + abstract + "&searchtype=abstract&abstracts=show&order=&size=25"
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
-        assert soup.find("span", class_="is-warning") is None, "no result for search"
+        if soup.find("span", class_="is-warning") is not None:
+            return False
         pList = soup.find_all("p", class_="list-title is-inline-block")
         idList = []
         for i in range(min(10, len(pList))):
