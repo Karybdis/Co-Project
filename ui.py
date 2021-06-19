@@ -230,6 +230,9 @@ class Example(QWidget):
         self.month2 = text
 
     def statisticsBtnClicked(self):
+        if (int(self.year2)-2017)*12 + int(self.month2) < (int(self.year1)-2017)*12 + int(self.month1):
+            QMessageBox.warning(self, '警告', '请输入正确的时间段', QMessageBox.Yes, QMessageBox.Yes)
+            return 0
         nums, labels = self.crawler.getTimeQuantumSubjectProp(self.year1, self.month1, self.year2, self.month2)
         if nums is None:
             QMessageBox.warning(self, '警告', '请先统计主题', QMessageBox.Yes, QMessageBox.Yes)
@@ -238,6 +241,9 @@ class Example(QWidget):
         plt.show()
 
     def themeBtnClicked(self):
+        if (int(self.year2)-2017)*12 + int(self.month2) < (int(self.year1)-2017)*12 + int(self.month1):
+            QMessageBox.warning(self, '警告', '请输入正确的时间段', QMessageBox.Yes, QMessageBox.Yes)
+            return 0
         print(1)
         self.setWindowTitle('正在统计主题，请稍等...')
         print(2)
@@ -251,6 +257,9 @@ class Example(QWidget):
         return 0
 
     def trendBtnClicked(self):
+        if (int(self.year2)-2017)*12 + int(self.month2) < (int(self.year1)-2017)*12 + int(self.month1):
+            QMessageBox.warning(self, '警告', '请输入正确的时间段', QMessageBox.Yes, QMessageBox.Yes)
+            return 0
         flag = self.crawler.getTimeQuantumSubjectTrend(self.year1, self.month1, self.year2, self.month2)
         if flag is False:
             QMessageBox.warning(self, '警告', '请先统计主题', QMessageBox.Yes, QMessageBox.Yes)
