@@ -250,6 +250,8 @@ class Crawler():
                  subject: (str) 主题
                  ])
         """
+        if os.path.exists("./ssss.txt"):
+            os.remove("./ssss.txt")
         title = self.replaceSign(title)
         words = title.split(" ")
         title = ""
@@ -286,6 +288,8 @@ class Crawler():
                  subject: (str) 主题
                  ])
         """
+        if os.path.exists("./ssss.txt"):
+            os.remove("./ssss.txt")
         words = author.split(" ")
         author = ""
         if len(words) > 0:
@@ -315,6 +319,8 @@ class Crawler():
                  subject: (str) 主题
                  ])
         """
+        if os.path.exists("./ssss.txt"):
+            os.remove("./ssss.txt")
         words = abstract.split(" ")
         abstract = ""
         if len(words) > 0:
@@ -365,7 +371,7 @@ class Crawler():
             dict = {"id": id, "title": title, "authors": authors, "abstract": abstract, "subject": subject}
             info.append(dict)
             time.sleep(0.5)
-        with open("./sss.txt", 'w', encoding="utf-8") as f:
+        with open("./ssss.txt", 'w', encoding="utf-8") as f:
             for i in range(len(idList)):
                 f.write(info[i]["id"] + "\n")
         return info
@@ -412,7 +418,7 @@ class Crawler():
         indices = set()
         urls = []
         try:
-            with open("./sss.txt", 'r') as f:
+            with open("./ssss.txt", 'r') as f:
                 lines = f.readlines()
         except FileNotFoundError:
             return False
