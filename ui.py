@@ -297,7 +297,7 @@ class Example(QWidget):
         text = self.numedit.text()
         directory = QFileDialog.getExistingDirectory(None, "选取文件夹", "C:/")
         print('directory:', directory)
-        if directory == 'C:/' or directory == '':
+        if directory == '':              # directory == 'C:/' or
             return 0
         self.crawler.downloadPaperFromInput(text, directory)
         QMessageBox.question(self, '信息', '论文下载完毕', QMessageBox.Yes, QMessageBox.Yes)
