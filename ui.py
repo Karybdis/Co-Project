@@ -116,6 +116,7 @@ class Example(QWidget):
         self.edit = QPlainTextEdit(self)
         self.edit.resize(370, 430)
         self.edit.move(410, 50)
+        # self.edit.setPlainText('text_str')
 
         self.searchedit = QLineEdit(self)
         self.searchedit.resize(150, 30)
@@ -266,6 +267,7 @@ class Example(QWidget):
             return 0
 
     def searchBtnClicked(self):
+        print('1')
         text = self.searchedit.text()
         if text == '':
             return 0
@@ -279,6 +281,7 @@ class Example(QWidget):
             retu = self.crawler.searchPaperByID(str(text))
         # self.edit.setText(str(retu))
         print(retu)
+        self.edit.clear()
         if retu is False:
             QMessageBox.warning(self, '警告', '未找到该论文', QMessageBox.Yes, QMessageBox.Yes)
             return 0
