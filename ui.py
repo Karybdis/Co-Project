@@ -299,7 +299,10 @@ class Example(QWidget):
         print('directory:', directory)
         if directory == '':              # directory == 'C:/' or
             return 0
-        self.crawler.downloadPaperFromInput(text, directory)
+        flag = self.crawler.downloadPaperFromInput(text, directory)
+        if flag is False:
+            QMessageBox.warning(self, '警告', '请先进行查询', QMessageBox.Yes, QMessageBox.Yes)
+            return 0
         QMessageBox.question(self, '信息', '论文下载完毕', QMessageBox.Yes, QMessageBox.Yes)
 
     def showDialog(self):
