@@ -18,7 +18,7 @@ class Crawler():
         # elif isinstance(url, list):
         #     self.urls.extend(url)
         self.url = "https://arxiv.org/list/" + major + "/"
-        self.major=major
+        self.major = major
         os.makedirs("../arxiv/" + major, exist_ok=True)
 
     def getYearMonthSubject(self, year, month):
@@ -43,8 +43,8 @@ class Crawler():
             titles = soup.find_all("div", class_="list-title mathjax")  # 获取所有标题所在的div
             subjects = soup.find_all("span", class_="primary-subject")  # 获取所有主题所在的span
             for i in range(len(titles)):
-                savePath = "../arxiv/"+self.major+"/" + year + month + ".txt"
-                with open(savePath, "a",encoding="utf-8") as f:
+                savePath = "../arxiv/" + self.major + "/" + year + month + ".txt"
+                with open(savePath, "a", encoding="utf-8") as f:
                     f.write(titles[i].span.next_sibling.strip() + ";" + subjects[i].text + "\n")
             currentPaper += 2000
 
@@ -97,10 +97,10 @@ class Crawler():
                  labels:(list[str]) 某个主题标签，索引对应nums
         """
         try:
-            with open("../arxiv/"+self.major+"/" + year + month + ".txt") as f:
+            with open("../arxiv/" + self.major + "/" + year + month + ".txt") as f:
                 lines = f.readlines()
         except FileNotFoundError:
-            return None,None
+            return None, None
         sum = len(lines)  # 总的主题数
         subjectDict = {}
         for line in lines:
@@ -140,10 +140,10 @@ class Crawler():
             for month in range(curStartMonth, curEndMonth + 1):
                 m = str(month) if month >= 10 else "0" + str(month)
                 try:
-                    with open("../arxiv/"+self.major+"/" + str(year) + m + ".txt") as f:
+                    with open("../arxiv/" + self.major + "/" + str(year) + m + ".txt") as f:
                         lines = f.readlines()
                 except FileNotFoundError:
-                    return None,None
+                    return None, None
                 sum += len(lines)
                 for line in lines:
                     subject = line.split(";")[-1].strip()
@@ -199,7 +199,7 @@ class Crawler():
                 m = str(month) if month >= 10 else "0" + str(month)
                 xticks.append(str(year) + m)
                 try:
-                    with open("../arxiv/"+self.major+"/" + str(year) + m + ".txt") as f:
+                    with open("../arxiv/" + self.major + "/" + str(year) + m + ".txt") as f:
                         lines = f.readlines()
                 except FileNotFoundError:
                     return False
@@ -209,11 +209,10 @@ class Crawler():
                         y[subjectIndex[subject]][time] += 1
                 time += 1
         for i in range(len(y)):
-            plt.plot(x,y[i],label=labels[i])
-        plt.xticks(x,xticks)
-        plt.legend(bbox_to_anchor=(0,1.02),loc=3, borderaxespad=0)
+            plt.plot(x, y[i], label=labels[i])
+        plt.xticks(x, xticks)
+        plt.legend(bbox_to_anchor=(0, 1.02), loc=3, borderaxespad=0)
         plt.show()
-
 
     def getLabelsAndNum(self, subjectDict, sum):
         """
@@ -366,7 +365,7 @@ class Crawler():
             dict = {"id": id, "title": title, "authors": authors, "abstract": abstract, "subject": subject}
             info.append(dict)
             time.sleep(0.5)
-        with open("./sss.txt", 'w',encoding="utf-8") as f:
+        with open("./sss.txt", 'w', encoding="utf-8") as f:
             for i in range(len(idList)):
                 f.write(info[i]["id"] + "\n")
         return info
@@ -397,6 +396,8 @@ class Crawler():
             url = self.searchPaperByTitle(line.strip(), True)
             if url != "":
                 urls.append(url)
+        if not urls:
+            return 
         self.download(urls, savePath)
 
     def downloadPaperFromInput(self, input, savePath):
