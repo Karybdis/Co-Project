@@ -294,7 +294,9 @@ class Example(QWidget):
         directory = QFileDialog.getExistingDirectory(None, "选取文件夹", "C:/")
         if directory == 'C:/' or directory == '':
             return 0
-        self.crawler.downloadPaperFromTxt(text, directory)
+        flag = self.crawler.downloadPaperFromTxt(text, directory)
+        if flag is False:
+            QMessageBox.warning(self, '警告', '请选择txt文件', QMessageBox.Yes, QMessageBox.Yes)
         # if path:
         #     reply = QMessageBox.question(self, '信息', path)
         # else:
