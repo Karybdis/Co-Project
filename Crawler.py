@@ -55,7 +55,7 @@ class Crawler():
         :param startMonth: (str | int) 开始月份，2018-2021
         :param endYear: (str | int) 结束年份，01-12
         :param endMonth: (str | int) 结束月份，01-12
-        :return: None
+        :return: None | False (boolean) 时间设置错误标识
         """
         if isinstance(startYear, str):
             assert startYear.isdigit() and len(startYear) == 4
@@ -385,8 +385,10 @@ class Crawler():
         从本地批量下载论文
         :param txtPath: (str) txt地址
         :param savePath: (str) 保存地址
-        :return:Ｎone
+        :return:Ｎone | False (Boolean) 文件不符合规范标识
         """
+        if not txtPath.endswith(".txt"):
+            return False
         with open(txtPath, 'r') as f:
             lines = f.readlines()
         urls = []
@@ -444,7 +446,7 @@ if __name__ == "__main__":
     # if not os.path.isdir("../arxiv"):
     #     os.mkdir("../arxiv")
     crawler = Crawler("math")
-    crawler.getTimeQuantumSubject("2019", "08", "2020", "09")
+    # crawler.getTimeQuantumSubject("2019", "08", "2020", "09")
     # nums,labels=crawler.getYearMonthSubjectProp("20","01")
     # info = crawler.searchPaperByID(
     #     ["2012.15397", "2012.13501"])
@@ -452,6 +454,6 @@ if __name__ == "__main__":
     # nums, labels = crawler.getTimeQuantumSubjectProp("2019", "08", "2020", "03")
     # plt.pie(nums, labels=labels, autopct="%.2f%%")
     # plt.show()
-    crawler.getTimeQuantumSubjectTrend("2019", "08", "2019", "11")
-    # crawler.downloadPaperFromTxt("/home/cheng/paper.txt", "/home/cheng/dlPaper")
+    # crawler.getTimeQuantumSubjectTrend("2019", "08", "2019", "11")
+    crawler.downloadPaperFromTxt("/home/cheng/paper.txat", "/home/cheng/dlPaper")
     # crawler.downloadPaperFromInput("1,2,3","/home/cheng/dlPaper")
