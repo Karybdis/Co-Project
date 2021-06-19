@@ -3,12 +3,12 @@
 
 import sys
 import os
-from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton,
-                             QDesktopWidget, QHBoxLayout, QVBoxLayout,
-                             QGridLayout, QLabel, QLineEdit, QTextEdit,
-                             QComboBox, QMessageBox, QInputDialog, QFileDialog)
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import QCoreApplication
+# from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton,
+#                              QDesktopWidget, QHBoxLayout, QVBoxLayout,
+#                              QGridLayout, QLabel, QLineEdit, QTextEdit,
+#                              QComboBox, QMessageBox, QInputDialog, QFileDialog)
+# from PyQt5.QtGui import QIcon
+# from PyQt5.QtCore import QCoreApplication
 import Crawler
 import matplotlib.pyplot as plt
 from PyQt5.Qt import *
@@ -34,7 +34,7 @@ class Example(QWidget):
         self.setGeometry(300, 300, 800, 500)
         self.center()
         # 设置窗口的标题
-        self.setWindowTitle('论文下载神器')
+        self.setWindowTitle('论文统计下载器')
         # 设置窗口的图标，引用当前目录下的web.png图片
         self.setWindowIcon(QIcon('web.png'))
         self.crawler = Crawler.Crawler("math")
@@ -242,7 +242,7 @@ class Example(QWidget):
         self.setWindowTitle('正在统计主题，请稍等...')
         print(2)
         self.message()
-        self.setWindowTitle('论文下载神器')
+        self.setWindowTitle('论文统计下载器')
         QMessageBox.question(self, '信息', '主题统计完毕', QMessageBox.Yes, QMessageBox.Yes)
 
     def message(self):
@@ -270,6 +270,9 @@ class Example(QWidget):
             retu = self.crawler.searchPaperByID(str(text))
         # self.edit.setText(str(retu))
         print(retu)
+        if retu is False:
+            QMessageBox.warning(self, '警告', '未找到该论文', QMessageBox.Yes, QMessageBox.Yes)
+            return 0
         for i in range(len(retu)):
             self.edit.appendPlainText(str(i + 1))
             self.edit.appendPlainText('\n')
